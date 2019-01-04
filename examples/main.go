@@ -7,13 +7,6 @@ import (
 	. "gitlab.com/jdbellamy/kundalini"
 )
 
-func init() {
-	textFmt := new(logrus.TextFormatter)
-	textFmt.DisableTimestamp = true
-	logrus.SetFormatter(textFmt)
-	logrus.SetLevel(logrus.DebugLevel)
-}
-
 func main() {
 
 	buf := []int{}
@@ -25,7 +18,7 @@ func main() {
 	v := []int{0, 1, 2, 3, 4}
 
 	k, err := Wrap(v).
-		Filter(even).
+		Filter(even()).
 		Map(double()).
 		Export(ptr).
 		Filter(firstN(2)).
@@ -48,8 +41,10 @@ func main() {
 	logrus.Infoln(" types:", types)
 }
 
-func even(x interface{}) bool {
-	return x.(int)%2 == 0
+func even() Predicate {
+	return func(x interface{}) bool {
+		return x.(int)%2 == 0
+	}
 }
 
 func double() Fn {
@@ -74,4 +69,11 @@ func firstN(n int) Predicate {
 		count = count + 1
 		return r
 	}
+}
+
+func init() {
+	textFmt := new(logrus.TextFormatter)
+	textFmt.DisableTimestamp = true
+	logrus.SetFormatter(textFmt)
+	logrus.SetLevel(logrus.DebugLevel)
 }
