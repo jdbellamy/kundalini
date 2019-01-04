@@ -14,6 +14,7 @@ func Types(s reflect.Value) []reflect.Type {
 	for i := 0; i < s.Len(); i++ {
 		types[i] = s.Index(i).Type()
 	}
+
 	return types
 }
 

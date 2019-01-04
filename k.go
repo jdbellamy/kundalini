@@ -187,10 +187,10 @@ func (k *K) Pop() Kundalini {
 	if k.err != nil {
 		return k
 	}
-	logrus.Debug("popped: ", k.wrapped)
 	idx := len(k.stack) - 1
 	tail := k.stack[idx]
 	left := k.stack[:idx]
+	logrus.Debug("popped: ", tail)
 	return &K{
 		wrapped: tail,
 		stack:   left,
