@@ -24,14 +24,14 @@ func main() {
 	v := []int{0, 1, 2, 3, 4}
 
 	k, err := Wrap(v).
-		Filter(even()).
+		Filter(even).
 		Map(double()).
 		Export(ptr).
 		Filter(firstN(2)).
 		Concat(Wrap(buf).
 			Filter(firstN(1)).
 			ReleaseOrPanic()).
-		Reduce(8, sum()).
+		Reduce(3, sum()).
 		Push().
 		Types().
 		Export(typesPtr).
@@ -47,10 +47,8 @@ func main() {
 	logrus.Infoln(" types:", types)
 }
 
-func even() Predicate {
-	return func(x interface{}) bool {
-		return x.(int)%2 == 0
-	}
+func (x interface{}) bool {
+	return x.(int)%2 == 0
 }
 
 func double() Fn {
