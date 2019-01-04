@@ -26,13 +26,13 @@ func main() {
 
 	k, err := Wrap(v).
 		Filter(even).
-		Map(double).
+		Map(double()).
 		Export(ptr).
 		Filter(firstN(2)).
 		Concat(Wrap(buf).
 			Filter(firstN(1)).
 			ReleaseOrPanic()).
-		Reduce(8, sum).
+		Reduce(8, sum()).
 		Push().
 		Types().
 		Export(typesPtr).
@@ -43,27 +43,33 @@ func main() {
 		logrus.Errorln(err)
 	}
 
-	logrus.Infoln("... k:", k)
+	logrus.Infoln("     k:", k)
+	logrus.Infoln("   buf:", buf)
+	logrus.Infoln(" types:", types)
 }
 
 func even(x interface{}) bool {
 	return x.(int)%2 == 0
 }
 
-func double(x interface{}) interface{} {
-	return x.(int) * 2
+func double() Fn {
+	return func(x interface{}) interface{} {
+		return x.(int) * 2
+	}
 }
 
-func sum(acc interface{}, x interface{}) interface{} {
-	return acc.(int) + x.(int)
+func sum() Transform {
+	return func(acc interface{}, x interface{}) interface{} {
+		return acc.(int) + x.(int)
+	}
 }
 
-func firstN(n interface{}) Predicate {
+func firstN(n int) Predicate {
 	count := 0
 	return func(interface{}) bool {
-		var r = true
-		if count <= n.(int) {
-			r = false
+		var r = false
+		if count < n {
+			r = true
 		}
 		count = count + 1
 		return r
