@@ -18,12 +18,15 @@ type Kundalini interface {
 	ReleaseOrPanic() interface{}
 	Types() Kundalini
 	Export(reflect.Value) Kundalini
+	Push() Kundalini
+	Pop() Kundalini
 }
 
 // K holds the elements that kundalini operates on
 type K struct {
 	wrapped interface{}
 	err     error
+	stack   []interface{}
 }
 
 type Fn func(interface{}) interface{}
@@ -36,7 +39,10 @@ var OperandTypeMismatchError = fmt.Errorf("type mismatch between wrapped value a
 // Wrap wraps an element in an instance of `k`
 func Wrap(e interface{}) Kundalini {
 	logrus.Debug("  wrap: ", e)
-	return &K{wrapped: e}
+	return &K{
+		wrapped: e,
+		stack:   make([]interface{}, 0),
+	}
 }
 
 // Release returns the elements wrapped by `k`
@@ -65,7 +71,10 @@ func (k *K) Types() Kundalini {
 	case reflect.Slice:
 		v := slices.Types(reflect.ValueOf(k.wrapped))
 		logrus.Debug(" types: ", v)
-		return &K{wrapped: v}
+		return &K{
+			wrapped: v,
+			stack:   k.stack,
+		}
 	}
 	return &K{err: UnsupportedWrappedTypeError}
 }
@@ -80,7 +89,10 @@ func (k *K) Export(ptr reflect.Value) Kundalini {
 	case reflect.Slice:
 		v := slices.Export(reflect.ValueOf(k.wrapped), ptr)
 		logrus.Debug("export: ", v)
-		return &K{wrapped: v}
+		return &K{
+			wrapped: v,
+			stack:   k.stack,
+		}
 	}
 	return &K{err: UnsupportedWrappedTypeError}
 }
@@ -94,7 +106,10 @@ func (k *K) Map(fn Fn) Kundalini {
 	case reflect.Slice:
 		v := slices.Map(reflect.ValueOf(k.wrapped), fn)
 		logrus.Debug("   map: ", v)
-		return &K{wrapped: v}
+		return &K{
+			wrapped: v,
+			stack:   k.stack,
+		}
 	}
 	return &K{err: UnsupportedWrappedTypeError}
 }
@@ -108,7 +123,10 @@ func (k *K) Filter(p func(interface{}) bool) Kundalini {
 	case reflect.Slice:
 		v := slices.Filter(reflect.ValueOf(k.wrapped), p)
 		logrus.Debug("filter: ", v)
-		return &K{wrapped: v}
+		return &K{
+			wrapped: v,
+			stack:   k.stack,
+		}
 	}
 	return &K{err: UnsupportedWrappedTypeError}
 }
@@ -122,7 +140,10 @@ func (k *K) Reduce(acc interface{}, fn Transform) Kundalini {
 	case reflect.Slice:
 		v := slices.Reduce(reflect.ValueOf(k.wrapped), acc, fn)
 		logrus.Debug("reduce: ", v)
-		return &K{wrapped: v}
+		return &K{
+			wrapped: v,
+			stack:   k.stack,
+		}
 	}
 	return &K{err: UnsupportedWrappedTypeError}
 }
@@ -139,8 +160,39 @@ func (k *K) Concat(e interface{}) Kundalini {
 		if err != nil {
 			return &K{err: err}
 		} else {
-			return &K{wrapped: v}
+			return &K{
+				wrapped: v,
+				stack:   k.stack,
+			}
 		}
 	}
 	return &K{err: UnsupportedWrappedTypeError}
+}
+
+// Push appends the elements wrapped by `k` to an internal stack
+func (k *K) Push() Kundalini {
+	if k.err != nil {
+		return k
+	}
+	logrus.Debug("pushed: ", k.wrapped)
+	stack := append(k.stack, k.wrapped)
+	return &K{
+		wrapped: k.wrapped,
+		stack:   stack,
+	}
+}
+
+// Pop sets the value wrapped by `k` to the tail of the internal stack
+func (k *K) Pop() Kundalini {
+	if k.err != nil {
+		return k
+	}
+	idx := len(k.stack) - 1
+	tail := k.stack[idx]
+	left := k.stack[:idx]
+	logrus.Debug("popped: ", tail)
+	return &K{
+		wrapped: tail,
+		stack:   left,
+	}
 }

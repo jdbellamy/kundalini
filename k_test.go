@@ -18,6 +18,7 @@ func TestWrap(t *testing.T) {
 			expected interface{}
 			err      error
 		}
+
 		tests := []Test{{
 			input:    []string{},
 			expected: []string{},
@@ -37,11 +38,15 @@ func TestWrap(t *testing.T) {
 			input:    []string{strings.Repeat("∆", 9999)},
 			expected: []string{strings.Repeat("∆", 9999)},
 		}}
+
 		for _, tt := range tests {
 			var v interface{}
 			v = tt.input
+
 			actual, err := Wrap(v).Release()
+
 			expected := tt.expected
+
 			assert.NoError(t, err)
 			assert.Equal(t, expected, actual)
 		}
@@ -56,8 +61,10 @@ func TestTypes(t *testing.T) {
 			expected []reflect.Type
 			err      error
 		}
+
 		var strT = reflect.TypeOf("")
 		var intT = reflect.TypeOf(0)
+
 		tests := []Test{{
 			input:    []string{},
 			expected: []reflect.Type{},
@@ -89,11 +96,15 @@ func TestTypes(t *testing.T) {
 			input:    []string{strings.Repeat("∆", 9999)},
 			expected: []reflect.Type{strT},
 		}}
+
 		for _, tt := range tests {
 			var v interface{}
 			v = tt.input
+
 			actual, err := Wrap(v).Types().Release()
+
 			expected := tt.expected
+
 			assert.NoError(t, err)
 			assert.Equal(t, expected, actual)
 		}
@@ -105,6 +116,7 @@ func TestTypes(t *testing.T) {
 			actual []reflect.Type
 			err    error
 		}
+
 		tests := []Test{{
 			input: 0,
 			err:   UnsupportedWrappedTypeError,
@@ -115,8 +127,10 @@ func TestTypes(t *testing.T) {
 			input: map[string]string{},
 			err:   UnsupportedWrappedTypeError,
 		}}
+
 		for _, tt := range tests {
 			actual, err := Wrap(tt.input).Types().Release()
+
 			assert.EqualError(t, err, tt.err.Error())
 			assert.Nil(t, actual)
 		}
@@ -124,8 +138,9 @@ func TestTypes(t *testing.T) {
 
 	t.Run("should forward received error", func(t *testing.T) {
 		var noop Fn = func(x interface{}) interface{} { return nil }
-		v := 0
-		actual, err := Wrap(v).Map(noop).Types().Release()
+
+		actual, err := Wrap(0).Map(noop).Types().Release()
+
 		assert.EqualError(t, err, UnsupportedWrappedTypeError.Error())
 		assert.Nil(t, actual)
 	})
@@ -140,13 +155,17 @@ func TestMap(t *testing.T) {
 			fn       Fn
 			err      error
 		}
+
 		var noop Fn = func(x interface{}) interface{} { return nil }
+
 		var double Fn = func(x interface{}) interface{} {
 			return x.(int) * 2
 		}
+
 		var incr Fn = func(x interface{}) interface{} {
 			return x.(int) + 1
 		}
+
 		tests := []Test{{
 			input:    []string{},
 			expected: []string{},
@@ -160,11 +179,15 @@ func TestMap(t *testing.T) {
 			expected: []int{2, 3, 4},
 			fn:       incr,
 		}}
+
 		for _, tt := range tests {
 			var v interface{}
 			v = tt.input
+
 			actual, err := Wrap(v).Map(tt.fn).Release()
+
 			expected := tt.expected
+
 			assert.NoError(t, err)
 			assert.Equal(t, expected, actual)
 		}
@@ -177,7 +200,9 @@ func TestMap(t *testing.T) {
 			fn     Fn
 			err    error
 		}
+
 		var noop Fn = func(x interface{}) interface{} { return nil }
+
 		tests := []Test{{
 			input: 0,
 			err:   UnsupportedWrappedTypeError,
@@ -200,8 +225,9 @@ func TestMap(t *testing.T) {
 
 	t.Run("should forward received error", func(t *testing.T) {
 		var noop Fn = func(x interface{}) interface{} { return nil }
-		v := 0
-		actual, err := Wrap(v).Map(noop).Map(noop).Release()
+
+		actual, err := Wrap(0).Map(noop).Map(noop).Release()
+
 		assert.EqualError(t, err, UnsupportedWrappedTypeError.Error())
 		assert.Nil(t, actual)
 	})
@@ -216,17 +242,23 @@ func TestFilter(t *testing.T) {
 			fn       Predicate
 			err      error
 		}
+
 		var none Predicate = func(x interface{}) bool { return false }
+
 		tests := []Test{{
 			input:    []string{},
 			expected: []string{},
 			fn:       none,
 		}}
+
 		for _, tt := range tests {
 			var v interface{}
 			v = tt.input
+
 			actual, err := Wrap(v).Filter(tt.fn).Release()
+
 			expected := tt.expected
+
 			assert.NoError(t, err)
 			assert.Equal(t, expected, actual)
 		}
@@ -239,7 +271,9 @@ func TestFilter(t *testing.T) {
 			fn     Predicate
 			err    error
 		}
+
 		var none Predicate = func(x interface{}) bool { return false }
+
 		tests := []Test{{
 			input: 0,
 			err:   UnsupportedWrappedTypeError,
@@ -253,8 +287,10 @@ func TestFilter(t *testing.T) {
 			err:   UnsupportedWrappedTypeError,
 			fn:    none,
 		}}
+
 		for _, tt := range tests {
 			actual, err := Wrap(tt.input).Filter(tt.fn).Release()
+
 			assert.EqualError(t, err, tt.err.Error())
 			assert.Nil(t, actual)
 		}
@@ -263,8 +299,9 @@ func TestFilter(t *testing.T) {
 	t.Run("should forward received error", func(t *testing.T) {
 		var noop Fn = func(x interface{}) interface{} { return nil }
 		var none Predicate = func(x interface{}) bool { return false }
-		v := 0
-		actual, err := Wrap(v).Map(noop).Filter(none).Release()
+
+		actual, err := Wrap(0).Map(noop).Filter(none).Release()
+
 		assert.EqualError(t, err, UnsupportedWrappedTypeError.Error())
 		assert.Nil(t, actual)
 	})
@@ -280,18 +317,24 @@ func TestReduce(t *testing.T) {
 			acc      interface{}
 			err      error
 		}
+
 		var noacc Transform = func(acc interface{}, x interface{}) interface{} { return acc }
+
 		tests := []Test{{
 			input:    []string{},
 			expected: []string{},
 			fn:       noacc,
 			acc:      []string{},
 		}}
+
 		for _, tt := range tests {
 			var v interface{}
 			v = tt.input
+
 			actual, err := Wrap(v).Reduce(tt.acc, tt.fn).Release()
+
 			expected := tt.expected
+
 			assert.NoError(t, err)
 			assert.Equal(t, expected, actual)
 		}
@@ -305,7 +348,9 @@ func TestReduce(t *testing.T) {
 			acc    interface{}
 			err    error
 		}
+
 		var noacc Transform = func(acc interface{}, x interface{}) interface{} { return acc }
+
 		tests := []Test{{
 			input: 0,
 			err:   UnsupportedWrappedTypeError,
@@ -322,8 +367,10 @@ func TestReduce(t *testing.T) {
 			fn:    noacc,
 			acc:   []map[string]string{},
 		}}
+
 		for _, tt := range tests {
 			actual, err := Wrap(tt.input).Reduce(tt.acc, tt.fn).Release()
+
 			assert.EqualError(t, err, tt.err.Error())
 			assert.Nil(t, actual)
 		}
@@ -333,8 +380,9 @@ func TestReduce(t *testing.T) {
 		var noop Fn = func(x interface{}) interface{} { return nil }
 		var noacc Transform = func(acc interface{}, x interface{}) interface{} { return acc }
 		acc := []map[string]string{}
-		v := 0
-		actual, err := Wrap(v).Map(noop).Reduce(acc, noacc).Release()
+
+		actual, err := Wrap(0).Map(noop).Reduce(acc, noacc).Release()
+
 		assert.EqualError(t, err, UnsupportedWrappedTypeError.Error())
 		assert.Nil(t, actual)
 	})
@@ -356,7 +404,9 @@ func TestConcat(t *testing.T) {
 		}}
 		for _, tt := range tests {
 			actual, err := Wrap(tt.input).Concat(tt.op).Release()
+
 			expected := tt.expected
+
 			assert.NoError(t, err)
 			assert.Equal(t, expected, actual)
 		}
@@ -369,6 +419,7 @@ func TestConcat(t *testing.T) {
 			op     interface{}
 			err    error
 		}
+
 		tests := []Test{{
 			input: 0,
 			err:   UnsupportedWrappedTypeError,
@@ -383,7 +434,10 @@ func TestConcat(t *testing.T) {
 			op:    []map[string]string{},
 		}}
 		for _, tt := range tests {
-			actual, err := Wrap(tt.input).Concat(tt.op).Release()
+			actual, err := Wrap(tt.input).
+				Concat(tt.op).
+				Release()
+
 			assert.EqualError(t, err, tt.err.Error())
 			assert.Nil(t, actual)
 		}
@@ -393,20 +447,80 @@ func TestConcat(t *testing.T) {
 		var noop Fn = func(x interface{}) interface{} { return nil }
 		var op = []int{0, 1, 3}
 		v := 0
+
 		actual, err := Wrap(v).Map(noop).Concat(op).Release()
+
 		assert.EqualError(t, err, UnsupportedWrappedTypeError.Error())
 		assert.Nil(t, actual)
 	})
 
 	t.Run("should raise an error when given an incorrectly typed operand", func(t *testing.T) {
 		v := []string{}
+
 		actual, err := Wrap(v).
 			Concat([]int{}).
 			Release()
+
 		errString := OperandTypeMismatchError.Error()
+
 		assert.Error(t, err)
 		assert.EqualError(t, err, errString)
 		assert.Nil(t, actual)
+	})
+}
+
+func TestPushPop(t *testing.T) {
+
+	t.Run("push forwards received error", func(t *testing.T) {
+		var noop Fn = func(x interface{}) interface{} { return nil }
+
+		actual, err := Wrap(0).
+			Map(noop).
+			Push().
+			Release()
+
+		assert.EqualError(t, err, UnsupportedWrappedTypeError.Error())
+		assert.Nil(t, actual)
+	})
+
+	t.Run("pop forwards received error", func(t *testing.T) {
+		var noop Fn = func(x interface{}) interface{} { return nil }
+
+		actual, err := Wrap(0).
+			Map(noop).
+			Pop().
+			Release()
+
+		assert.EqualError(t, err, UnsupportedWrappedTypeError.Error())
+		assert.Nil(t, actual)
+	})
+
+	t.Run("stack state is correctly managed for happy path", func(t *testing.T) {
+		var even Predicate = func(x interface{}) bool { return x.(int)%2 == 0 }
+		var none Predicate = func(x interface{}) bool { return false }
+
+		v := []int{1, 2, 3}
+		popped := make([][]int, 3)
+		Wrap(v).
+			Push().
+			Concat([]int{4}).
+			Pop().
+			Export(reflect.ValueOf(&popped[0])).
+			Concat([]int{7}).
+			Push().
+			Concat([]int{8}).
+			Pop().
+			Export(reflect.ValueOf(&popped[1])).
+			Filter(even).
+			Push().
+			Filter(none).
+			Pop().
+			Export(reflect.ValueOf(&popped[2])).
+			ReleaseOrPanic()
+
+		assert.Equal(t, []int{1, 2, 3}, popped[0])
+		assert.Equal(t, []int{1, 2, 3, 7}, popped[1])
+		assert.Equal(t, []int{2}, popped[2])
 	})
 }
 

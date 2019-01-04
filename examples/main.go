@@ -1,9 +1,3 @@
-# kundalini
-
-Chaining map/filter/reduce in Go  
-
-## Example
-```go
 package main
 
 import (
@@ -47,7 +41,7 @@ func main() {
 	logrus.Infoln(" types:", types)
 }
 
-func (x interface{}) bool {
+func even(x interface{}) bool {
 	return x.(int)%2 == 0
 }
 
@@ -81,7 +75,3 @@ func init() {
 	logrus.SetFormatter(textFmt)
 	logrus.SetLevel(logrus.DebugLevel)
 }
-```
-
-## Docs
-Just an excuse to learn about Go reflection - not intended for any actual things
