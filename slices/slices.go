@@ -101,7 +101,6 @@ func Concat(s reflect.Value, e interface{}) (interface{}, error) {
 	}
 
 	for i := s.Len(); i < r.Len(); i++ {
-
 		r.Index(i).Set(eV.Index(i - s.Len()))
 	}
 
