@@ -59,7 +59,6 @@ func Filter(s reflect.Value, p func(interface{}) bool) interface{} {
 
 // Reduce applys 'fn' over the elements of `k` and accumulates the results
 func Reduce(s reflect.Value, acc interface{}, fn func(interface{}, interface{}) interface{}) interface{} {
-
 	if s.Len() == 0 {
 		return s.Interface()
 	}
